@@ -1,4 +1,4 @@
-# Puberry Backend — SWE Intern Take-Home
+# Puberry 
 
 ## 1. Setup & Run
 
@@ -34,6 +34,9 @@ The `GET /lessons/:id` endpoint strips `correctIndex` from every question before
 
 **Idempotency guard**
 `POST /lessons/:id/quiz` checks `student.progress[lessonId]?.completed` before grading. If the lesson is already completed it returns `409 ALREADY_COMPLETED` immediately, preventing a student from earning coins more than once per lesson.
+
+**Quiz retry on failure**
+A failed attempt (score below 70%) records `completed: false` and increments an `attempts` counter, but does not lock the student out. They may retry until they pass. Coins are awarded exactly once — on the first passing submission — because the idempotency guard fires on `completed === true`.
 
 ---
 
