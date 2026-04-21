@@ -15,13 +15,12 @@ export default function Dashboard({ profile, lessons, onSelectLesson }) {
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
           <h1 className="text-4xl font-black text-brand-primary drop-shadow-sm">
-            {profile?.name ? `Welcome back, ${profile.name}!` : 'Your Dashboard'}
+            Welcome Puberry
           </h1>
           <p className="text-brand-primary-muted mt-1 font-semibold text-lg">
             Pick a lesson and earn coins!
           </p>
         </div>
-        <CoinBadge balance={profile?.coinBalance ?? 0} />
       </div>
 
       {/* Completed summary */}

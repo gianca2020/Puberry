@@ -144,7 +144,6 @@ export default function LessonView({ lessonId, profile, onBack, onQuizComplete }
       {/* Quiz */}
       {!result && (
         <form onSubmit={handleSubmit} className="space-y-8">
-          <h2 className="text-2xl font-black text-indigo-600">Quiz Time! 🧠</h2>
 
           {lesson.questions.map((q, qi) => (
             <div
@@ -194,7 +193,7 @@ export default function LessonView({ lessonId, profile, onBack, onQuizComplete }
             disabled={submitting || alreadyCompleted}
             className="w-full bg-violet-500 border-b-4 border-violet-700 active:border-b-0 active:translate-y-1 disabled:bg-gray-300 disabled:border-gray-400 disabled:translate-y-0 text-white font-black py-4 rounded-2xl transition-transform duration-100 text-lg shadow-lg"
           >
-            {submitting ? '⏳ Submitting…' : alreadyCompleted ? '✅ Already Completed' : '🚀 Submit Quiz!'}
+            {submitting ? '⏳ Submitting…' : alreadyCompleted ? '✅ Already Completed' : ' Submit'}
           </button>
         </form>
       )}
