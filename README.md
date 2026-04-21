@@ -92,4 +92,3 @@ Response includes all lessons with a per-lesson `completed` flag:
 ## 4. Note on Coin Rewards
 
 The spec requires a flat **10 coins** per completed lesson, which this implementation follows. The data model includes a `coinReward` field on each lesson as a deliberate design extension — it allows per-lesson reward values to be configured independently without any code changes, supporting potential future requirements like bonus lessons or difficulty tiers.
-# Puberry

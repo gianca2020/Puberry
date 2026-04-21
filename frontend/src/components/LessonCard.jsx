@@ -41,7 +41,7 @@ export default function LessonCard({ lesson, completed, score, onSelect }) {
               'inline-flex items-center gap-1 text-xs font-black px-3 py-1.5 rounded-pill shadow-sm',
               completed
                 ? 'bg-brand-success/20 text-brand-success-dark'
-                : 'bg-brand-gold text-white',
+                : 'bg-brand-gold text-white ',
             ].join(' ')}
           >
             {completed ? (

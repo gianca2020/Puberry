@@ -40,11 +40,15 @@ router.post('/:id/quiz', (req, res) => {
     return res.status(400).json({ error: { code: 'MISSING_STUDENT_ID', message: "'studentId' is required" } });
   }
 
-  if (!Array.isArray(answers) || answers.length !== lesson.questions.length) {
+  if (
+    !Array.isArray(answers) ||
+    answers.length !== lesson.questions.length ||
+    answers.some((a, i) => !Number.isInteger(a) || a < 0 || a >= lesson.questions[i].options.length)
+  ) {
     return res.status(400).json({
       error: {
         code: 'INVALID_ANSWERS',
-        message: `'answers' must be an array of ${lesson.questions.length} indices`,
+        message: `'answers' must be an array of ${lesson.questions.length} zero-based option indices`,
       },
     });
   }

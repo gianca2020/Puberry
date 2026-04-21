@@ -6,7 +6,7 @@ import coinSfx from '../assets/freesound_crunchpixstudio-drop-coin-384921.mp3';
 import winnerSfx from '../assets/puyopuyomegafan1234-winner-game-sound-404167.mp3';
 
 
-export default function LessonView({ lessonId, profile, onBack, onQuizComplete }) {
+export default function LessonView({ lessonId, profile, savedProgress, onProgressChange, onBack, onQuizComplete }) {
   const [lesson, setLesson]               = useState(null);
   const [answers, setAnswers]             = useState([]);
   const [currentQuestion, setCurrentQ]   = useState(0);
@@ -15,44 +15,58 @@ export default function LessonView({ lessonId, profile, onBack, onQuizComplete }
   const [submitting, setSubmitting]       = useState(false);
   const [error, setError]                 = useState(null);
 
-  const viewportRef  = useRef(null);
-  const stripRef     = useRef(null);
-  const pendingRef   = useRef(false); // true during the 300 ms answer-preview delay
-  const animatingRef = useRef(false); // true while GSAP slide is in flight
+  const viewportRef        = useRef(null);
+  const stripRef           = useRef(null);
+  const pendingRef         = useRef(false); // true during the 300 ms answer-preview delay
+  const animatingRef       = useRef(false); // true while GSAP slide is in flight
+  const initialPositionRef = useRef(false); // false until strip has been positioned after first load
 
   const coinAudio   = useRef(new Audio(coinSfx));
   const winnerAudio = useRef(new Audio(winnerSfx));
 
-  const alreadyCompleted = profile?.completedLessons?.some(l => l.lessonId === lessonId);
+  const alreadyCompleted = profile?.lessons?.some(l => l.lessonId === lessonId && l.completed);
   const allAnswered      = answers.length > 0 && answers.every(a => a !== null);
 
   useEffect(() => {
+    initialPositionRef.current = false;
     setLoading(true);
-    setCurrentQ(0);
+    setCurrentQ(savedProgress?.currentQuestion ?? 0);
     fetchLesson(lessonId)
       .then(data => {
         setLesson(data);
-        setAnswers(new Array(data.questions.length).fill(null));
+        setAnswers(savedProgress?.answers ?? new Array(data.questions.length).fill(null));
       })
       .catch(() => setError('Could not load lesson.'))
       .finally(() => setLoading(false));
-  }, [lessonId]);
+  }, [lessonId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist progress to parent so it survives unmount.
+  useEffect(() => {
+    if (lesson && onProgressChange) {
+      onProgressChange({ currentQuestion, answers });
+    }
+  }, [currentQuestion, answers, lesson]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Slide the strip horizontally to the active question.
+  // Also depends on `lesson` so it re-runs once the strip enters the DOM after loading.
   useEffect(() => {
     if (!stripRef.current || !viewportRef.current) return;
     animatingRef.current = true;
     const w = viewportRef.current.offsetWidth;
 
+    // Jump instantly on first mount (restoring saved position); animate all subsequent navigation.
+    const isFirst = !initialPositionRef.current;
+    initialPositionRef.current = true;
+
     const tween = gsap.to(stripRef.current, {
       x: -currentQuestion * w,
-      duration: currentQuestion === 0 ? 0 : 0.5,
+      duration: isFirst ? 0 : 0.5,
       ease: 'power3.inOut',
       onComplete: () => { animatingRef.current = false; },
     });
 
     return () => tween.kill();
-  }, [currentQuestion]);
+  }, [currentQuestion, lesson]);
 
 
   function handleAnswerSelect(qi, oi) {

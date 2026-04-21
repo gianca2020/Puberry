@@ -45,10 +45,6 @@ function getAllLessons() {
   return lessons;
 }
 
-function getStudentById(id) {
-  return students[id] || null;
-}
-
 function getOrCreateStudent(id, name = 'Anonymous') {
   if (!students[id]) {
     students[id] = {
@@ -61,4 +57,4 @@ function getOrCreateStudent(id, name = 'Anonymous') {
   return students[id];
 }
 
-module.exports = { getLessonById, getAllLessons, getStudentById, getOrCreateStudent };
+module.exports = { getLessonById, getAllLessons, getOrCreateStudent };

@@ -10,6 +10,7 @@ export default function App() {
   const [lessons, setLessons] = useState([]);
   const [selectedLessonId, setSelectedLessonId] = useState(null);
   const [loadError, setLoadError] = useState(null);
+  const [lessonProgress, setLessonProgress] = useState({});
 
   const loadData = useCallback(async () => {
     try {
@@ -27,7 +28,12 @@ export default function App() {
 
   function handleQuizComplete(newBalance) {
     setProfile((prev) => ({ ...prev, coinBalance: newBalance }));
+    setLessonProgress((prev) => { const next = { ...prev }; delete next[selectedLessonId]; return next; });
     loadData();
+  }
+
+  function handleProgressChange(lessonId, progress) {
+    setLessonProgress((prev) => ({ ...prev, [lessonId]: progress }));
   }
 
   if (loadError) {
@@ -68,6 +74,8 @@ export default function App() {
         <LessonView
           lessonId={selectedLessonId}
           profile={profile}
+          savedProgress={lessonProgress[selectedLessonId] ?? null}
+          onProgressChange={(progress) => handleProgressChange(selectedLessonId, progress)}
           onBack={() => setSelectedLessonId(null)}
           onQuizComplete={handleQuizComplete}
         />

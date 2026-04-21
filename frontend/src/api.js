@@ -27,6 +27,11 @@ export async function submitQuiz(lessonId, answers) {
     body: JSON.stringify({ studentId: STUDENT_ID, studentName: STUDENT_NAME, answers }),
   });
   const data = await res.json();
-  if (!res.ok) throw { status: res.status, ...data };
+  if (!res.ok) {
+    const err = new Error(data?.error?.message ?? 'Request failed');
+    err.status = res.status;
+    err.error = data?.error;
+    throw err;
+  }
   return data;
 }
