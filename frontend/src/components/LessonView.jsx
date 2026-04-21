@@ -1,29 +1,36 @@
 import { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
 import { fetchLesson, submitQuiz } from '../api';
-import CoinBadge from './CoinBadge';
 import CoinIcon from './CoinIcon';
 import coinSfx from '../assets/freesound_crunchpixstudio-drop-coin-384921.mp3';
 import winnerSfx from '../assets/puyopuyomegafan1234-winner-game-sound-404167.mp3';
 
-export default function LessonView({ lessonId, profile, onBack, onQuizComplete }) {
-  const [lesson, setLesson] = useState(null);
-  const [answers, setAnswers] = useState([]);
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
 
-  const coinAudio = useRef(new Audio(coinSfx));
+export default function LessonView({ lessonId, profile, onBack, onQuizComplete }) {
+  const [lesson, setLesson]               = useState(null);
+  const [answers, setAnswers]             = useState([]);
+  const [currentQuestion, setCurrentQ]   = useState(0);
+  const [result, setResult]               = useState(null);
+  const [loading, setLoading]             = useState(true);
+  const [submitting, setSubmitting]       = useState(false);
+  const [error, setError]                 = useState(null);
+
+  const viewportRef  = useRef(null);
+  const stripRef     = useRef(null);
+  const pendingRef   = useRef(false); // true during the 300 ms answer-preview delay
+  const animatingRef = useRef(false); // true while GSAP slide is in flight
+
+  const coinAudio   = useRef(new Audio(coinSfx));
   const winnerAudio = useRef(new Audio(winnerSfx));
 
-  const alreadyCompleted = profile?.completedLessons?.some(
-    (l) => l.lessonId === lessonId
-  );
+  const alreadyCompleted = profile?.completedLessons?.some(l => l.lessonId === lessonId);
+  const allAnswered      = answers.length > 0 && answers.every(a => a !== null);
 
   useEffect(() => {
     setLoading(true);
+    setCurrentQ(0);
     fetchLesson(lessonId)
-      .then((data) => {
+      .then(data => {
         setLesson(data);
         setAnswers(new Array(data.questions.length).fill(null));
       })
@@ -31,9 +38,53 @@ export default function LessonView({ lessonId, profile, onBack, onQuizComplete }
       .finally(() => setLoading(false));
   }, [lessonId]);
 
+  // Slide the strip horizontally to the active question.
+  useEffect(() => {
+    if (!stripRef.current || !viewportRef.current) return;
+    animatingRef.current = true;
+    const w = viewportRef.current.offsetWidth;
+
+    const tween = gsap.to(stripRef.current, {
+      x: -currentQuestion * w,
+      duration: currentQuestion === 0 ? 0 : 0.5,
+      ease: 'power3.inOut',
+      onComplete: () => { animatingRef.current = false; },
+    });
+
+    return () => tween.kill();
+  }, [currentQuestion]);
+
+
+  function handleAnswerSelect(qi, oi) {
+    if (pendingRef.current || animatingRef.current) return;
+
+    const updated = [...answers];
+    updated[qi] = oi;
+    setAnswers(updated);
+
+    // Advance to the next question after a brief pause so the selection is visible.
+    if (qi < lesson.questions.length - 1) {
+      pendingRef.current = true;
+      setTimeout(() => {
+        pendingRef.current = false;
+        setCurrentQ(qi + 1);
+      }, 300);
+    }
+  }
+
+  function handleGoBack() {
+    if (pendingRef.current || animatingRef.current || currentQuestion === 0) return;
+    setCurrentQ(q => q - 1);
+  }
+
+  function handleGoNext(qi) {
+    if (pendingRef.current || animatingRef.current) return;
+    setCurrentQ(qi + 1);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
-    if (answers.some((a) => a === null)) {
+    if (answers.some(a => a === null)) {
       setError('Please answer all questions before submitting.');
       return;
     }
@@ -106,7 +157,7 @@ export default function LessonView({ lessonId, profile, onBack, onQuizComplete }
         <p className="text-gray-600 leading-relaxed font-medium">{lesson.content}</p>
       </div>
 
-      {/* Already completed banner */}
+      {/* Already-completed banner */}
       {alreadyCompleted && !result && (
         <div className="bg-emerald-100 border-b-4 border-emerald-400 rounded-3xl p-5 mb-6 text-emerald-700 font-bold shadow-lg">
           ✅ You already aced this lesson and earned coins!
@@ -143,58 +194,122 @@ export default function LessonView({ lessonId, profile, onBack, onQuizComplete }
 
       {/* Quiz */}
       {!result && (
-        <form onSubmit={handleSubmit} className="space-y-8">
-
-          {lesson.questions.map((q, qi) => (
-            <div
-              key={q.id}
-              className="bg-white rounded-3xl border-b-4 border-indigo-200 shadow-xl p-6"
-            >
-              <p className="font-black text-indigo-800 text-lg mb-4">
-                {qi + 1}. {q.prompt}
-              </p>
-              <div className="space-y-3">
-                {q.options.map((opt, oi) => (
-                  <label
-                    key={oi}
-                    className={`flex items-center gap-3 rounded-2xl border-b-4 px-5 py-3.5 cursor-pointer transition-all duration-150 ${
-                      answers[qi] === oi
-                        ? 'border-indigo-400 bg-indigo-100 -translate-y-0.5 shadow-md'
-                        : 'border-gray-200 bg-gray-50 hover:border-indigo-200 hover:bg-indigo-50 hover:-translate-y-0.5'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name={`q${qi}`}
-                      value={oi}
-                      checked={answers[qi] === oi}
-                      onChange={() => {
-                        const updated = [...answers];
-                        updated[qi] = oi;
-                        setAnswers(updated);
-                      }}
-                      className="accent-indigo-600 w-4 h-4"
-                    />
-                    <span className={`font-semibold ${answers[qi] === oi ? 'text-indigo-700' : 'text-gray-700'}`}>{opt}</span>
-                  </label>
-                ))}
-              </div>
+        <form onSubmit={handleSubmit}>
+          {/* Progress row */}
+          <div className="flex items-center justify-between mb-3 px-1">
+            <span className="text-sm font-bold text-indigo-500">
+              Question {currentQuestion + 1} of {lesson.questions.length}
+            </span>
+            <div className="flex gap-1.5">
+              {lesson.questions.map((_, i) => (
+                <span
+                  key={i}
+                  className={`w-2.5 h-2.5 rounded-full transition-colors duration-300 ${
+                    i < currentQuestion
+                      ? 'bg-indigo-400'
+                      : i === currentQuestion
+                      ? 'bg-violet-500'
+                      : 'bg-gray-200'
+                  }`}
+                />
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Slider viewport — overflow-hidden clips off-screen question cards */}
+          <div
+            ref={viewportRef}
+            className="overflow-hidden rounded-3xl border-b-4 border-indigo-200 shadow-xl mb-6"
+          >
+            {/* Strip — CSS grid gives each card exactly the viewport width; GSAP slides X */}
+            <div
+              ref={stripRef}
+              className="grid will-change-transform"
+              style={{ gridTemplateColumns: `repeat(${lesson.questions.length}, 100%)` }}
+            >
+              {lesson.questions.map((q, qi) => (
+                <div
+                  key={q.id}
+                  data-qi={qi}
+                  className="bg-white p-6 flex flex-col"
+                >
+                  {/* Per-card back / next nav */}
+                  <div className="flex items-center justify-between mb-3 h-8">
+                    {qi > 0 ? (
+                      <button
+                        type="button"
+                        onClick={handleGoBack}
+                        className="text-sm font-bold text-indigo-400 hover:text-indigo-600 transition-colors"
+                      >
+                        ← 
+                      </button>
+                    ) : <span />}
+                    {answers[qi] !== null && qi < lesson.questions.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleGoNext(qi)}
+                        className="text-sm font-bold text-indigo-400 hover:text-indigo-600 transition-colors"
+                      >
+                         →
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Question + choices */}
+                  <div className="flex-1 flex flex-col justify-center">
+                    <p className="font-black text-indigo-800 text-lg mb-5">
+                      {qi + 1}. {q.prompt}
+                    </p>
+                    <div className="space-y-3">
+                      {q.options.map((opt, oi) => (
+                        <label
+                          key={oi}
+                          className={`choice-item flex items-center gap-3 rounded-2xl border-b-4 px-5 py-3.5 cursor-pointer transition-all duration-150 ${
+                            answers[qi] === oi
+                              ? 'border-indigo-400 bg-indigo-100 -translate-y-0.5 shadow-md'
+                              : 'border-gray-200 bg-gray-50 hover:border-indigo-200 hover:bg-indigo-50 hover:-translate-y-0.5'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name={`q${qi}`}
+                            value={oi}
+                            checked={answers[qi] === oi}
+                            onChange={() => handleAnswerSelect(qi, oi)}
+                            className="accent-indigo-600 w-4 h-4"
+                          />
+                          <span
+                            className={`font-semibold ${
+                              answers[qi] === oi ? 'text-indigo-700' : 'text-gray-700'
+                            }`}
+                          >
+                            {opt}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {error && (
-            <div className="bg-red-100 border-b-4 border-red-400 rounded-2xl px-5 py-3 text-red-600 font-bold shadow-sm">
+            <div className="bg-red-100 border-b-4 border-red-400 rounded-2xl px-5 py-3 text-red-600 font-bold shadow-sm mb-4">
               ⚠️ {error}
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={submitting || alreadyCompleted}
-            className="w-full bg-violet-500 border-b-4 border-violet-700 active:border-b-0 active:translate-y-1 disabled:bg-gray-300 disabled:border-gray-400 disabled:translate-y-0 text-white font-black py-4 rounded-2xl transition-transform duration-100 text-lg shadow-lg"
-          >
-            {submitting ? '⏳ Submitting…' : alreadyCompleted ? '✅ Already Completed' : ' Submit'}
-          </button>
+          {/* Submit appears only after every question has been answered */}
+          {allAnswered && (
+            <button
+              type="submit"
+              disabled={submitting || alreadyCompleted}
+              className="w-full bg-violet-500 border-b-4 border-violet-700 active:border-b-0 active:translate-y-1 disabled:bg-gray-300 disabled:border-gray-400 disabled:translate-y-0 text-white font-black py-4 rounded-2xl transition-transform duration-100 text-lg shadow-lg"
+            >
+              {submitting ? '⏳ Submitting…' : alreadyCompleted ? '✅ Already Completed' : 'Submit'}
+            </button>
+          )}
         </form>
       )}
 
