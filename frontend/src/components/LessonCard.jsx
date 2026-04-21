@@ -1,5 +1,7 @@
 import Button from './Button';
 import CoinIcon from './CoinIcon';
+import bookClosed from '../assets/book-closed-svgrepo-com.png';
+import bookOpened from '../assets/book-opened-svgrepo-com.png';
 
 export default function LessonCard({ lesson, completed, score, onSelect }) {
   return (
@@ -36,7 +38,7 @@ export default function LessonCard({ lesson, completed, score, onSelect }) {
       <div className="p-5">
         {/* Reward badge row */}
         <div className="flex justify-between items-start mb-3">
-          <span className="text-3xl" aria-hidden="true">{completed ? '📘' : '📖'}</span>
+          <img src={completed ? bookClosed : bookOpened} alt="" aria-hidden="true" className="w-9 h-9 object-contain" />
           <span
             className={[
               'inline-flex items-center gap-1 text-xs font-black px-3 py-1.5 rounded-pill shadow-sm',
