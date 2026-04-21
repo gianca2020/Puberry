@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { fetchProfile, fetchLessons } from './api';
 import Dashboard from './components/Dashboard';
 import LessonView from './components/LessonView';
+import Button from './components/Button';
 
 export default function App() {
   const [profile, setProfile] = useState(null);
@@ -34,12 +35,9 @@ export default function App() {
         <div className="bg-white border-b-4 border-red-400 rounded-3xl p-10 max-w-md text-center shadow-xl">
           <p className="text-5xl mb-4">⚠️</p>
           <p className="text-red-600 font-bold text-lg">{loadError}</p>
-          <button
-            onClick={loadData}
-            className="mt-6 bg-red-500 border-b-4 border-red-700 active:border-b-0 active:translate-y-1 text-white px-8 py-3 rounded-2xl font-bold text-base transition-transform duration-100 shadow-md"
-          >
+          <Button variant="danger" size="md" onClick={loadData} className="mt-6">
             Try Again!
-          </button>
+          </Button>
         </div>
       </div>
     );
