@@ -3,7 +3,7 @@ const STUDENT_ID = 'student_01';
 const STUDENT_NAME = 'Jane Doe';
 
 export async function fetchProfile() {
-  const res = await fetch(`${BASE}/students/${STUDENT_ID}/profile`);
+  const res = await fetch(`${BASE}/students/${STUDENT_ID}/profile?name=${encodeURIComponent(STUDENT_NAME)}`);
   if (!res.ok) throw new Error('Failed to load profile');
   return res.json();
 }

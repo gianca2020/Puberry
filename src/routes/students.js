@@ -4,8 +4,9 @@ const { getOrCreateStudent, getAllLessons } = require('../data/store');
 const router = express.Router();
 
 // GET /students/:id/profile
+// Accepts optional ?name= so the frontend can seed the display name on first load.
 router.get('/:id/profile', (req, res) => {
-  const student = getOrCreateStudent(req.params.id);
+  const student = getOrCreateStudent(req.params.id, req.query.name);
 
   const allLessons = getAllLessons();
   const lessons = allLessons.map((l) => {

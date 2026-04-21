@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { fetchLesson, submitQuiz } from '../api';
 import CoinBadge from './CoinBadge';
+import CoinIcon from './CoinIcon';
 import coinSfx from '../assets/freesound_crunchpixstudio-drop-coin-384921.mp3';
 import winnerSfx from '../assets/puyopuyomegafan1234-winner-game-sound-404167.mp3';
 
@@ -98,8 +99,8 @@ export default function LessonView({ lessonId, profile, onBack, onQuizComplete }
           <span className="text-xs font-black uppercase tracking-widest text-violet-500 bg-violet-100 px-3 py-1 rounded-full">
             Lesson
           </span>
-          <span className="bg-amber-400 border-b-2 border-amber-600 text-white text-sm font-black px-4 py-1.5 rounded-full shadow-sm">
-            🪙 +{lesson.coinReward} on pass!
+          <span className="inline-flex items-center gap-1.5 bg-brand-gold border-b-2 border-brand-gold-dark text-white text-sm font-black px-4 py-1.5 rounded-pill shadow-sm">
+            <CoinIcon className="w-4 h-4" />+{lesson.coinReward} on pass!
           </span>
         </div>
         <h1 className="text-3xl font-black text-indigo-700 mb-3 leading-tight">{lesson.title}</h1>
@@ -126,12 +127,15 @@ export default function LessonView({ lessonId, profile, onBack, onQuizComplete }
             {result.passed ? '🎉 You passed!' : '😔 Not quite…'}
           </p>
           <p className="font-semibold">{result.message}</p>
-          <p className="mt-1 font-semibold">
+          <p className="mt-1 font-semibold flex items-center gap-1 flex-wrap">
             Score: <strong>{result.score}%</strong>
             {result.passed && (
               <>
-                {' '}· Coins earned: <strong>+{result.coinsEarned}</strong> ·
-                New balance: <strong>{result.newBalance}</strong>
+                {' '}· Coins earned:{' '}
+                <strong className="inline-flex items-center gap-1">
+                  +{result.coinsEarned}<CoinIcon className="w-4 h-4" />
+                </strong>
+                {' '}· New balance: <strong>{result.newBalance}</strong>
               </>
             )}
           </p>
