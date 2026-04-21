@@ -3,6 +3,7 @@ import { fetchProfile, fetchLessons } from './api';
 import Dashboard from './components/Dashboard';
 import LessonView from './components/LessonView';
 import Button from './components/Button';
+import CoinBadge from './components/CoinBadge';
 
 export default function App() {
   const [profile, setProfile] = useState(null);
@@ -59,9 +60,7 @@ export default function App() {
       <header className="bg-indigo-700 px-6 py-4 sticky top-0 z-10 shadow-lg">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <span className="text-sm font-bold tracking-widest text-white pt-0.5">Puberry</span>
-          <span className="text-sm text-indigo-100 font-semibold">
-            Hey, <span className="text-white font-black">{profile.name}</span>! 👋
-          </span>
+          <CoinBadge balance={profile?.coinBalance ?? 0} />
         </div>
       </header>
 
