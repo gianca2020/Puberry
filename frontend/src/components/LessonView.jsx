@@ -83,14 +83,13 @@ export default function LessonView({ lessonId, profile, onBack, onQuizComplete }
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       {/* Nav */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6">
         <button
           onClick={onBack}
           className="flex items-center gap-2 bg-white border-b-4 border-indigo-300 active:border-b-0 active:translate-y-1 text-indigo-600 font-bold text-sm px-5 py-2.5 rounded-2xl shadow-md transition-transform duration-100 hover:-translate-y-0.5"
         >
           ← Back
         </button>
-        <CoinBadge balance={profile?.coinBalance ?? 0} />
       </div>
 
       {/* Lesson header */}
@@ -144,7 +143,7 @@ export default function LessonView({ lessonId, profile, onBack, onQuizComplete }
 
       {/* Quiz */}
       {!result && (
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-8">
           <h2 className="text-2xl font-black text-indigo-600">Quiz Time! 🧠</h2>
 
           {lesson.questions.map((q, qi) => (
