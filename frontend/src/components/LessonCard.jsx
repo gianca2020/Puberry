@@ -6,14 +6,13 @@ export default function LessonCard({ lesson, completed, score, onSelect }) {
     <article
       onClick={() => onSelect(lesson.id)}
       className={[
-        'rounded-card border-b-4 overflow-hidden',
-        'shadow-card hover:shadow-card-hover',
-        'hover:-translate-y-1.5 active:translate-y-0 active:border-b-0',
-        'transition-all duration-200 cursor-pointer',
+        'rounded-card border overflow-hidden',
+        'shadow-sm hover:shadow-md',
+        'transition-shadow duration-200 cursor-pointer',
         'focus-within:ring-2 focus-within:ring-brand-accent focus-within:ring-offset-2',
         completed
-          ? 'bg-brand-success-light border-brand-success'
-          : 'bg-brand-surface border-brand-primary-muted',
+          ? 'bg-brand-success-light border-brand-success/40'
+          : 'bg-brand-surface border-gray-200',
       ].join(' ')}
     >
       {/* Completion banner — only shown when done */}
